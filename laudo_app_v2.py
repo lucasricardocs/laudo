@@ -1,4 +1,3 @@
-# laudo_app_v2.py - Versão corrigida para Streamlit Sharing
 import streamlit as st
 import re
 from datetime import datetime
