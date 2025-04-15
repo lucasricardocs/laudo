@@ -1,3 +1,4 @@
+# laudo_app_v2.py - Versão corrigida
 import streamlit as st
 import re
 from datetime import datetime
@@ -10,14 +11,14 @@ import traceback
 # ========== CONSTANTES ==========
 TIPOS_MATERIAL_BASE = {
     "v": "vegetal dessecado",
-    "po": "pulverizado",
-    "pd": "petrificado", 
+    "po": "pulverizado", 
+    "pd": "petrificado",
     "r": "resinoso"
 }
 
 TIPOS_EMBALAGEM_BASE = {
     "e": "microtubo do tipo eppendorf",
-    "z": "embalagem do tipo zip", 
+    "z": "embalagem do tipo zip",
     "a": "papel alumínio",
     "pl": "plástico",
     "pa": "papel"
@@ -30,7 +31,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# ========== CSS - DARK MODE PROFISSIONAL ==========
+# ========== CSS ==========
 st.markdown("""
 <style>
     :root {
@@ -58,20 +59,10 @@ st.markdown("""
         background-color: var(--primary) !important;
         color: white !important;
         border-radius: 8px !important;
-        transition: all 0.3s !important;
-    }
-    
-    .stButton>button:hover {
-        opacity: 0.9;
-        transform: scale(1.02);
     }
     
     h1, h2, h3 {
         color: var(--primary) !important;
-    }
-    
-    .stAlert {
-        background-color: var(--card) !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -84,16 +75,14 @@ st.markdown("""
             margin-bottom: 1.5rem;">
     <h1 style="color:white; text-align:center; margin:0;">GERADOR DE LAUDOS PERICIAIS</h1>
     <p style="color:#E0F2FE; text-align:center; margin:0.5rem 0 0;">
-        Sistema Oficial - Instituto de Criminalística
+        Sistema Oficial
     </p>
 </div>
 """, unsafe_allow_html=True)
 
-# ========== FUNÇÕES PRINCIPAIS ==========
+# ========== FUNÇÕES ==========
 def gerar_documento(itens, lacre_num):
     doc = Document()
-    
-    # Cabeçalho do documento
     doc.add_heading('LAUDO PERICIAL', 0)
     
     # Seção de materiais
@@ -101,30 +90,27 @@ def gerar_documento(itens, lacre_num):
     p.add_run("2 MATERIAL RECEBIDO PARA EXAME").bold = True
     
     for idx, item in enumerate(itens, start=1):
-        desc = f"2.{idx} {item['quantidade']} porções de {TIPOS_MATERIAL_BASE[item['tipo_material']}"
+        desc = f"2.{idx} {item['quantidade']} porções de {TIPOS_MATERIAL_BASE[item['tipo_material']]}"  # CORREÇÃO AQUI
         doc.add_paragraph(desc)
-    
-    # Adicione aqui as outras seções do laudo...
     
     bio = io.BytesIO()
     doc.save(bio)
     return bio
 
-# ========== FORMULÁRIO PRINCIPAL ==========
+# ========== FORMULÁRIO ==========
 with st.form("form_laudo"):
     lacre_num = st.text_input("Número do Lacre", placeholder="LC-2023-XXXXX")
-    
-    num_itens = st.number_input("Número de Itens", min_value=1, value=1, step=1)
+    num_itens = st.number_input("Número de Itens", min_value=1, value=1)
     
     itens = []
     for i in range(num_itens):
-        with st.expander(f"Item {i+1}", expanded=(i < 3)):
+        with st.expander(f"Item {i+1}"):
             cols = st.columns([1, 2, 2])
             with cols[0]:
                 qtd = st.number_input("Quantidade", key=f"q{i}_qtd", min_value=1, value=1)
             with cols[1]:
                 tipo_mat = st.selectbox(
-                    "Tipo Material", 
+                    "Tipo Material",
                     options=list(TIPOS_MATERIAL_BASE.keys()),
                     format_func=lambda x: TIPOS_MATERIAL_BASE[x],
                     key=f"q{i}_mat"
@@ -151,7 +137,6 @@ with st.form("form_laudo"):
                 try:
                     doc_bytes = gerar_documento(itens, lacre_num)
                     st.success("Laudo gerado com sucesso!")
-                    
                     st.download_button(
                         label="⬇️ Baixar Laudo",
                         data=doc_bytes.getvalue(),
@@ -159,5 +144,5 @@ with st.form("form_laudo"):
                         mime="application/vnd.openxmlformats-officedocument.wordprocessingml.document"
                     )
                 except Exception as e:
-                    st.error(f"Erro ao gerar documento: {str(e)}")
+                    st.error(f"Erro: {str(e)}")
                     st.text(traceback.format_exc())
