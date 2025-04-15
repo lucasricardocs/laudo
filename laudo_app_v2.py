@@ -1,4 +1,3 @@
-%%writefile laudo_app_v2.py
 import streamlit as st
 import re
 from datetime import datetime
